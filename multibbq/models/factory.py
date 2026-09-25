@@ -51,7 +51,7 @@ class ModelFactory:
     """Instantiate the correct MLLM wrapper for a model id.
 
     Args:
-        model_id:    e.g. "OpenGVLab/InternVL3_5-8B", "gpt-5-mini".
+        model_id:    e.g. "OpenGVLab/InternVL3_5-8B", "gpt-5-mini", "openai/gpt-6-sol".
         mode:        'default' | 'reasoning' | 'temp'.
         quant:       load the model quantized (families without a quantized
                      variant raise ValueError).
@@ -60,6 +60,13 @@ class ModelFactory:
 
     def create_model(self, model_id: str, mode: str = "default",
                      quant: bool = False, temperature=None, text_only: bool = False):
+        # Frontier API models served through OpenRouter (added in v1.1), matched by
+        # their full OpenRouter id before the family parsing below.
+        from .openrouter import OPENROUTER_MODELS  # light import (openai is loaded on use)
+        if model_id in OPENROUTER_MODELS and not text_only:
+            from .openrouter import OpenRouterModel
+            return OpenRouterModel(model_id, mode=mode, quant=quant, temperature=temperature)
+
         name, size, parts = _parse(model_id)
 
         # Text-only LLM evaluation: any HF causal LM, no vision wrapper.

@@ -28,6 +28,7 @@
 
 ## Updates
 
+- **[Sep 2026]** **v1.1**: six frontier models (GPT-6-sol, GPT-6-Luna, Claude Opus 5.5, Gemini 3.8 Flash, Grok 4.7, Muse Spark 1.3); a stricter answer parser, one label fix, and a re-run of the backbone setting without "in the image"; every released metric regenerated. The paper's findings are unchanged. Details: [CHANGELOG.md](CHANGELOG.md).
 - **[Jul 2026]** Initial release of **MultiBBQ**: the dataset, the evaluation toolkit, and the Fairness/Bias/Unknown-rate scoring package.
 - **[Jul 2026]** Paper online: **[Fairness Failure Modes of Multimodal LLMs](https://multibbq.github.io)**, by Canyu Chen\*, Anglin Cai\*, Joan Nwatu, Yale Li, Jessica Hullman, Rada Mihalcea, Kathleen McKeown, and Manling Li (Northwestern / Columbia / Michigan / Illinois Tech; \*equal contribution). This work is honored to receive the 🏆 **[Best Paper Award](https://drive.google.com/file/d/1OZcaRvlcB6uqkRgm5ve-ds0xS4TuW_6Z/view?usp=sharing)** in the *ACL 2026 Workshop on Trustworthy Natural Language Processing*.
 
@@ -71,7 +72,7 @@ built in [`docs/benchmark/dataset-construction.md`](docs/benchmark/dataset-const
 This repository has two sides. The **evaluation toolkit** is meant to be reused: score any
 vision-language model or text-only LLM for social bias with two complementary metrics on a
 controllable dataset. The **benchmark study** is the specific evaluation we report in the
-paper, where we run 28 models across the main benchmark and its factor, robustness, and
+paper, where we run 34 models across the main benchmark and its factor, robustness, and
 mitigation studies, and diagnose four Fairness Failure Modes. (The toolkit also ships a
 few extension settings the paper does not report, marked as such in
 [`docs/benchmark/experiments.md`](docs/benchmark/experiments.md).)
@@ -97,7 +98,7 @@ bias rather than to artifacts:
   image matches its context), and **Controllability** (nothing else differs). Two
   independent generators back the validity: model rankings agree across GPT-Image-1 and
   Imagen 4 Ultra (Pearson r = 0.9963 on FS_Total) and transfer to real face images
-  (r = 0.9787).
+  (r = 0.978).
 - **Metrics that separate abstention from bias and are anti-gaming.** BBQ's original scores are computed over
   non-Unknown responses only, which conflates how often a model abstains with how biased it
   is when it answers: a model that abstains on 95% of questions but is fully bias-aligned
@@ -129,8 +130,9 @@ Capabilities you can apply to your own models and studies:
 
 The dimensions of the specific evaluation reported in the paper:
 
-- **28 models across 11 families.** 6 proprietary (GPT-4o, GPT-5 base/mini/nano, Gemini 2.5
-  flash/flash-lite) and 22 open-source (InternVL3.5, Qwen2.5-VL, LLaVA-1.6, Gemma3,
+- **34 models across 15 families.** 12 proprietary (GPT-4o, GPT-5 base/mini/nano, Gemini 2.5
+  flash/flash-lite, and, added in v1.1, GPT-6 sol/Luna, Claude Opus 5.5, Gemini 3.8 Flash,
+  Grok 4.7, Muse Spark 1.3) and 22 open-source (InternVL3.5, Qwen2.5-VL, LLaVA-1.6, Gemma3,
   MiniCPM-V, DeepSeek-VL, BLIP-2, Fuyu). See [`docs/benchmark/models.md`](docs/benchmark/models.md).
 - **11 evaluation settings.** Baseline, image perturbation, quantization, decoding
   temperature, reasoning and fairness-instruction mitigation, real-world images, backbone
@@ -194,7 +196,8 @@ plain `pip install -e .`. Full setup, including **API keys** (OpenAI, Vertex AI,
 
 ```bash
 export OPENAI_API_KEY=sk-...            # GPT-4o / GPT-5
-export GOOGLE_CLOUD_PROJECT=my-project  # Gemini (Vertex AI)
+export GOOGLE_CLOUD_PROJECT=my-project  # Gemini 2.5 (Vertex AI)
+export OPENROUTER_API_KEY=sk-or-...     # GPT-6, Claude, Gemini 3.8, Grok, Muse (v1.1)
 ```
 
 **2. Get the images.** Inference reads images from `./data/images/` (relative to where you run).
@@ -235,7 +238,10 @@ multibbq pipeline --input results/gpt_image_gen_main --output analysis/gpt_image
 ```
 
 This scores every result file, combines them, and writes the per-category CSVs plus the
-`FS_total` / `BS_total` summary. See [`docs/getting-started/running.md`](docs/getting-started/running.md) and
+`FS_total` / `BS_total` summary. The mitigation runs are scored with `--tail-slice 18` and the
+real-image runs with `--include-categories race gender`, as in the paper;
+[`scripts/score_released_results.sh`](scripts/score_released_results.sh) applies these settings
+to every experiment. See [`docs/getting-started/running.md`](docs/getting-started/running.md) and
 [`docs/benchmark/metrics.md`](docs/benchmark/metrics.md).
 
 ### Experiments
@@ -250,7 +256,7 @@ This scores every result file, combines them, and writes the per-category CSVs p
 | `reasoning` | Mitigation (reasoning / fairness instruction) | `--reasoning_mode` |
 | `realworld` | Real-world images (visual-language only) | (none) |
 | `context_unmasked` | Demographic names injected into context | (none) |
-| `unmasked_w_img` / `unmasked_wo_img` | Backbone eval (unmasked text) | (none) |
+| `unmasked_w_img` / `unmasked_wo_img` | Backbone eval (unmasked text; with the image / with a blank image and "in the image" dropped) | (none) |
 | `llm` | **Text-only LLM evaluation** (no image) | (none) |
 
 Full map to paper sections: [`docs/benchmark/experiments.md`](docs/benchmark/experiments.md).

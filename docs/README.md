@@ -17,7 +17,7 @@ read the [project README](../README.md) first: it has the Quick Start.
 
 **"I want to reproduce the paper"**
 1. [benchmark/reproducing.md](benchmark/reproducing.md): step-by-step, released-images vs regenerate-images paths.
-2. [benchmark/models.md](benchmark/models.md): the 28 model ids and download links.
+2. [benchmark/models.md](benchmark/models.md): the 34 model ids and download links.
 3. [benchmark/RESULTS.md](benchmark/RESULTS.md): where the image set, raw results, and computed analysis live.
 
 **"I want to evaluate my own model"**

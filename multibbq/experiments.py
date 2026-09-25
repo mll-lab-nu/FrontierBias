@@ -13,6 +13,8 @@ Each experiment fixes a combination of orthogonal axes:
     vo       : whether the visual-only split is supported
     retry    : wrap model.run in a 3-attempt retry loop (long reasoning outputs)
     token    : results subdirectory token (results/<data_id>_<token>/)
+    strip_image_ref : drop " in the image" from the question (text-only and
+               blank-image settings, where no one is in the image)
 """
 
 SYSTEM_MSGS = {
@@ -36,7 +38,11 @@ EXPERIMENTS = {
     "realworld":        dict(mode="default", quant=False, fields="masked", image="realworld",options="plain", disambig="plain",  inject=False, vo=False, retry=False, token="realworld"),
     "context_unmasked": dict(mode="default", quant=False, fields="masked", image="dataset",  options="plain", disambig="plain",  inject=True,  vo=True,  retry=False, token="un_con_m_option"),
     "unmasked_w_img":   dict(mode="default", quant=False, fields="unmasked", image="dataset", options="plain", disambig="plain", inject=False, vo=True,  retry=False, token="unmasked_w_img"),
-    "unmasked_wo_img":  dict(mode="default", quant=False, fields="unmasked", image="blank",   options="plain", disambig="plain", inject=False, vo=True,  retry=False, token="unmasked_wo_img"),
+    # Backbone eval: a blank image, so " in the image" is stripped from the question
+    # (nobody is in a blank image to refer to), and there is no visual-only split
+    # (a blank image carries no information on its own). Since v1.1; v1.0 kept the
+    # phrase and allowed visual-only runs.
+    "unmasked_wo_img":  dict(mode="default", quant=False, fields="unmasked", image="blank",   options="plain", disambig="plain", inject=False, vo=False, retry=False, token="unmasked_wo_img", strip_image_ref=True),
     # Text-only LLM evaluation: no image, unmasked BBQ-style text, "in the image"
     # stripped from the question. Runs as visual-language (context is the task).
     "llm":              dict(mode="default", quant=False, fields="unmasked", image="none",    options="plain", disambig="plain", inject=False, vo=False, retry=False, token="llm", text_only=True, strip_image_ref=True),

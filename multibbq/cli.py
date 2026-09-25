@@ -58,7 +58,8 @@ def cmd_score(args: argparse.Namespace) -> int:
     keep = _resolve_score_flag(args.score)
 
     if input_path.is_file():
-        metrics = eval_file(input_path, args.output, tail_slice=args.tail_slice)
+        metrics = eval_file(input_path, args.output, tail_slice=args.tail_slice, parser=args.parser,
+                            include_categories=args.include_categories)
         filtered = _filter_scores(metrics, keep)
         json.dump(filtered, sys.stdout, indent=2)
         sys.stdout.write("\n")
@@ -76,6 +77,8 @@ def cmd_score(args: argparse.Namespace) -> int:
             args.output,
             tail_slice=args.tail_slice,
             skip_existing=args.skip_existing,
+            parser=args.parser,
+            include_categories=args.include_categories,
         )
         print(f"scored {len(scored)} files → {args.output}")
         return 0
@@ -126,7 +129,8 @@ def cmd_pipeline(args: argparse.Namespace) -> int:
     from multibbq.metrics.io import combine_metrics, eval_directory
 
     tmp_combined = Path(args.output) / "combined_metrics.json"
-    scored = eval_directory(args.input, Path(args.output) / "analysis", tail_slice=args.tail_slice)
+    scored = eval_directory(args.input, Path(args.output) / "analysis", tail_slice=args.tail_slice,
+                            parser=args.parser, include_categories=args.include_categories)
     print(f"scored {len(scored)} files")
     n = combine_metrics(Path(args.output) / "analysis", tmp_combined)
     print(f"combined {n} files → {tmp_combined}")
@@ -139,6 +143,18 @@ def cmd_pipeline(args: argparse.Namespace) -> int:
         subcategory_order=args.subcategory_order,
     )
     return 0
+
+
+def _add_scoring_options(p: argparse.ArgumentParser) -> None:
+    from multibbq.metrics.parsers import PARSERS  # light import (stdlib only)
+    p.add_argument("--tail-slice", type=int, default=None,
+                   help="scan only the last N chars for unknown synonyms (reasoning outputs; "
+                        "the paper's mitigation experiments use 18)")
+    p.add_argument("--parser", choices=PARSERS, default="strict",
+                   help="answer parser: 'strict' (default, standalone option letters and whole-word "
+                        "unknown phrases) or 'legacy' (v1.0 behavior, reproduces the v1.0 numbers)")
+    p.add_argument("--include-categories", nargs="+", default=None, metavar="CATEGORY",
+                   help="score only rows of these categories (the paper's real-image tables use: race gender)")
 
 
 def _add_metric_common(p: argparse.ArgumentParser) -> None:
@@ -201,8 +217,7 @@ def build_parser() -> argparse.ArgumentParser:
     ps = sub.add_parser("score", help="score one results file or a directory")
     ps.add_argument("--input", "-i", required=True, help="results JSON file or directory")
     ps.add_argument("--output", "-o", help="output _w_metrics.json (file mode) or directory (dir mode)")
-    ps.add_argument("--tail-slice", type=int, default=None,
-                    help="last N chars for unknown-synonym match (reasoning outputs)")
+    _add_scoring_options(ps)
     ps.add_argument("--score", choices=["all", "fairness", "bias", "unk"], default="all")
     ps.add_argument("--skip-existing", action="store_true",
                     help="dir mode: skip files whose output already exists")
@@ -228,7 +243,7 @@ def build_parser() -> argparse.ArgumentParser:
     pp.add_argument("--input", "-i", required=True, help="results root directory")
     pp.add_argument("--output", "-o", required=True,
                     help="output directory (will contain analysis/, csv_files/, metrics_details/)")
-    pp.add_argument("--tail-slice", type=int, default=None)
+    _add_scoring_options(pp)
     _add_metric_common(pp)
     pp.set_defaults(func=cmd_pipeline)
 

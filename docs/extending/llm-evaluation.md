@@ -49,7 +49,8 @@ result is *honest*, not merely functional:
 ## Relationship to the backbone experiments
 
 The paper measures the *language side* of an MLLM's bias with the **backbone** experiments
-(`unmasked_wo_img`: unmasked text + a blank white canvas, run through the MLLM interface).
+(`unmasked_wo_img`: unmasked text + a blank white canvas, run through the MLLM interface;
+like `llm`, it drops `" in the image"` from the question, since v1.1).
 The `llm` experiment is the natural complement: it evaluates a **standalone** text LLM with
 no vision stack at all, for example to compare an MLLM against its own backbone LLM, or to place
 a language-only model on the same fairness axes.

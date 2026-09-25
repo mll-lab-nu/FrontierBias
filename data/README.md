@@ -31,7 +31,12 @@ two generators; only `image_path` differs.
 
 Each table has 410 rows. In the two visual-only tables, 2 rows per generator reference
 images the generator refused to produce, so visual-only evaluations cover 408 items
-(the harness prints `Image not found` and skips those rows).
+(the harness prints `Image not found`, skips those rows and reports the count at the end).
+
+v1.1 fixed one label: gender item 7, context 2 now has `stereotype_group_idx = 2` and
+`nonstereotype_group_idx = 1` (they were swapped), in all eight metadata files and in the
+two construction tables. Known text issues that were left as evaluated are listed in
+[`../docs/benchmark/dataset.md`](../docs/benchmark/dataset.md#changes-and-known-issues).
 
 ## `images/` - the image trees
 

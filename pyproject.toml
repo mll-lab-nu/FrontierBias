@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "multibbq"
-version = "1.0.0"
+version = "1.1.0"
 description = "MultiBBQ: a fairness evaluation benchmark for multimodal LLMs."
 readme = "README.md"
 requires-python = ">=3.9"

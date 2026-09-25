@@ -54,6 +54,9 @@ models=(
 "google/gemma-3-12b-it"
 "google/gemma-3-27b-it"
 
+# API models run the same way (no GPU needed), e.g. the v1.1 frontier models via OpenRouter:
+# "openai/gpt-6-sol" "openai/gpt-6-luna" "anthropic/claude-opus-5.5"
+# "google/gemini-3.8-flash" "x-ai/grok-4.7" "meta/muse-spark-1.3"
 )
 
 # Use a single loop to iterate through all models

@@ -14,9 +14,9 @@ mode) and a results subdirectory token.
 | `temp` | Decoding temperature | `--temperature` | Impact of decoding temperature | `eval_models_temp.py` |
 | `reasoning` | Reasoning / fairness instruction | `--reasoning_mode` | Bias mitigation | `eval_models_reasoning.py` |
 | `realworld` | Real-world images (VL only) | (none) | Generalization to real images | `eval_models_realworld.py` |
-| `context_unmasked` | Demographic names injected into context | (none) | (control, not reported in the paper) | `eval_models_context_unmasked.py` |
+| `context_unmasked` | Demographic names in the ambiguous context ("a White man in the image and ..."), positional options | (none) | (control, not reported in the paper) | `eval_models_context_unmasked.py` |
 | `unmasked_w_img` | Backbone eval, unmasked text + image | (none) | Backbone-LLM comparison | `eval_models_unmasked_w_img.py` |
-| `unmasked_wo_img` | Backbone eval, unmasked text, blank image | (none) | Backbone-LLM comparison | `eval_models_unmasked_wo_img.py` |
+| `unmasked_wo_img` | Backbone eval, unmasked text, blank image, `" in the image"` dropped (visual-language only) | (none) | Backbone-LLM comparison | `eval_models_unmasked_wo_img.py` |
 | `llm` | **Text-only LLM evaluation** (no image) | (none) | (extension) | (none) |
 
 ## Axes (how the settings differ)
@@ -29,9 +29,12 @@ mode) and a results subdirectory token.
 - **options**: `plain` shows the (masked) choices; `label` replaces the non-answer choices
   with `person A/B/C`.
 - **mode**: the model wrapper mode; `reasoning` is resolved from `--reasoning_mode`.
-- **text_only / strip_image_ref**: set only for `llm`, to run a text LLM with no image, on the
-  unmasked text, with `" in the image"` stripped from the question. See
-  [llm-evaluation.md](../extending/llm-evaluation.md).
+- **text_only**: set only for `llm`, to run a text LLM with no image, on the unmasked text.
+  See [llm-evaluation.md](../extending/llm-evaluation.md).
+- **strip_image_ref**: strip `" in the image"` from the question, for the settings where no
+  one is in the image: `llm` and, since v1.1, `unmasked_wo_img`. With the phrase kept, a blank
+  image makes the question ill-posed, and frontier models answer "Unknown" because the image is
+  empty (v1.0 kept it; the 21 open-source models were re-run without it).
 
 The four `reasoning_mode` values combine a **reasoning** vs **non-reasoning** system
 instruction with an optional **fairness** instruction, isolating the effect of each

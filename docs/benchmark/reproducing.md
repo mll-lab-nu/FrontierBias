@@ -48,7 +48,8 @@ data/images/
 
 ```bash
 export OPENAI_API_KEY=sk-...                 # GPT-4o / GPT-5
-export GOOGLE_CLOUD_PROJECT=my-vertex-proj   # Gemini (Vertex AI)
+export GOOGLE_CLOUD_PROJECT=my-vertex-proj   # Gemini 2.5 (Vertex AI)
+export OPENROUTER_API_KEY=sk-or-...          # GPT-6, Claude, Gemini 3.8, Grok, Muse (v1.1)
 ```
 
 ### A4. Run inference
@@ -75,14 +76,28 @@ multibbq pipeline --input results/gpt_image_gen_main --output analysis/gpt_image
 ```
 
 produces per-category CSVs and the `FS_total` / `BS_total` summary (see [metrics.md](metrics.md)).
+Two groups of experiments need options to match the paper:
+
+```bash
+# mitigation: Unknown expressions are matched only in the last 18 characters
+multibbq pipeline --input results/gpt_image_gen_reasoning --output analysis/gpt_image_gen_reasoning --tail-slice 18
+# real images: the 58 race and gender items (the 20 age items are not scored)
+multibbq pipeline --input results/gpt_image_gen_realworld --output analysis/gpt_image_gen_realworld \
+    --include-categories race gender --categories race gender
+```
+
+`bash scripts/score_released_results.sh results analysis` scores every experiment with these
+settings; it is the script behind `analysis/` in MLL-Lab/MultiBBQ-results.
 
 ---
 
 ## Experiment → paper artifact → command
 
 Run each with its `scripts/` launcher (recommended) or the `multibbq run` line shown. The
-**28 models** are 6 proprietary (gpt-4o; gpt-5 / mini / nano; gemini-2.5-flash /
-flash-lite) plus 22 open-source (see [models.md](models.md)).
+**34 models** are 12 proprietary (gpt-4o; gpt-5 / mini / nano; gemini-2.5-flash /
+flash-lite; and, added in v1.1, gpt-6-sol / luna, claude-opus-5.5, gemini-3.8-flash,
+grok-4.7, muse-spark-1.3) plus 22 open-source (see [models.md](models.md)). The v1.1 models
+were run on `main`, the three mitigation settings (not Claude) and `unmasked_wo_img`.
 
 | Paper result | `--experiment` | Data / condition | Script |
 |---|---|---|---|
@@ -91,9 +106,10 @@ flash-lite) plus 22 open-source (see [models.md](models.md)).
 | Impact of image quality | `aug_img` | 8 perturbations, GPT-Image-1 | `eval_aug_img.sh` |
 | Impact of quantization | `quant` | LLaVA→4-bit BNB, Qwen2.5-VL→4-bit AWQ, InternVL3.5/BLIP2→8-bit BNB | `eval_quantization.sh` |
 | Impact of decoding temperature | `temp` | temperature 0 → 1.0 (only non-greedy study) | `eval_temp.sh` |
-| Bias mitigation | `reasoning` | baseline / fairness-instruction / reasoning / reasoning+fairness | `eval_reasoning.sh` |
-| MLLM vs. backbone LLM | `unmasked_w_img`, `unmasked_wo_img` | real image vs. blank image, unmasked text | `eval_unmasked_w_img.sh`, `eval_unmasked_wo_img.sh` |
-| Generalization to real images | `realworld` | Face Research Lab London faces, VL only | `eval_realworld.sh` |
+| Bias mitigation | `reasoning` | baseline / fairness-instruction / reasoning / reasoning+fairness; score with `--tail-slice 18` | `eval_reasoning.sh` |
+| MLLM vs. backbone LLM (Figure 3) | `unmasked_wo_img` (x axis) vs. `main` (y axis) | blank image, unmasked text, `" in the image"` dropped; y is the `main` FS/BS total, which includes the visual-only scenario | `eval_unmasked_wo_img.sh` |
+| (released control: real image with unmasked text) | `unmasked_w_img` | dataset image, unmasked text | `eval_unmasked_w_img.sh` |
+| Generalization to real images | `realworld` | Face Research Lab London faces, VL only; score with `--include-categories race gender` | `eval_realworld.sh` |
 | (control, not reported in the paper) | `context_unmasked` | demographic names re-injected | `eval_main_context_unmasked.sh` |
 | (control, not reported in the paper) | `img_label` | `person A/B/C` options | `eval_main_label.sh` |
 
@@ -102,9 +118,14 @@ flash-lite) plus 22 open-source (see [models.md](models.md)).
 | Type | Parameter |
 |---|---|
 | Brightness ↑ / ↓ | shift Δb·255, Δb ~ U(+0.10,+0.25) / U(−0.25,−0.10) |
-| Contrast ↑ / ↓ | ×(1+Δc) about the per-image mean, Δc ~ U(+0.10,+0.30) / U(−0.30,−0.10) |
+| Contrast ↑ / ↓ | pixel values ×(1+Δc) (about zero, so brightness shifts too), Δc ~ U(+0.10,+0.30) / U(−0.30,−0.10) |
 | JPEG compression | quality ~ U(40, 60) |
-| Gaussian noise | zero-mean, σ² ~ U(5, 15) (units in [0,255]²) |
+| Gaussian noise | zero-mean, standard deviation ≈ 53–83 in [0,255] units (variance ≈ 2.9k–6.8k) |
+
+The contrast and noise rows are measured on the released images. The generation notebook
+asked albumentations for `GaussNoise(var_limit=(5, 15))`, but the released noise is far
+stronger, consistent with a library version that ignores `var_limit` and falls back to its
+default noise level; the v1.0 docs and paper quoted the requested values.
 | Resize small / large | 512×512 / 2048×2048 bilinear |
 
 ---

@@ -18,6 +18,7 @@ time / mem header and the model list before submitting. Run from the repository 
 | `download_models.sh` | (none) | Pre-fetch open-source checkpoints. |
 | `extract_images.py` | (none) | Standalone download-then-extract for the main image set (no toolkit install; `huggingface_hub` + `pyarrow` only). |
 | `build_hf_dataset.py` | (none) | Maintainer: build + push the HuggingFace repos. |
+| `score_released_results.sh` | (all) | Score every experiment of the released outputs with the paper's settings (`--tail-slice 18` for mitigation, race + gender for the real-image runs); produces `analysis/` of MLL-Lab/MultiBBQ-results. |
 
 Usual path: edit a script → `sbatch scripts/eval_main.sh` (or `bash scripts/eval_main_cpu.sh`
 locally). See [`../docs/getting-started/running.md`](../docs/getting-started/running.md).

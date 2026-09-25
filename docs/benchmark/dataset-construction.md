@@ -15,6 +15,14 @@ visually-redundant subgroups (e.g. *Hispanic* subsumes *Latino / Latina / Latin
 American*). The result is **410 examples / 2,460 QA pairs** (one negative and one
 non-negative question per ambiguous/disambiguated context).
 
+> **Released text vs. today's notebooks.** The released metadata and images were generated
+> before two vocabulary entries were renamed (African American → Black, Latin American →
+> Hispanic), so the released instances use the older terms; re-running `gen_template.ipynb`
+> now yields the new names and a few article fixes. v1.1 also fixed two bugs in that notebook
+> for future builds: stereotype indices are matched as whole words (a substring test found
+> "man" in "The woman", which caused the gender item 7, context 2 label error fixed in the
+> data), and "in the image" is inserted after the word "Who" only (not inside "Whose").
+
 | Category | Examples | QA pairs |
 |---|---:|---:|
 | Race | 127 | 762 |
@@ -91,7 +99,7 @@ differs. Image **perturbations** (the `aug_img` study in
 > so re-running these notebooks yields images that differ from the released set. For
 > faithful reproduction, use the **released images** (see [`RESULTS.md`](RESULTS.md)),
 > not regenerated ones. This is safe because cross-generator ranking correlation is very
-> high: Pearson **r = 0.9963** (FS) / **0.9964** (BS) between GPT-Image-1 and Imagen, so
+> high: Pearson **r = 0.9963** (FS) / **0.9965** (BS) between GPT-Image-1 and Imagen, so
 > model rankings are stable even though individual images differ.
 
 ## 3. Human quality control

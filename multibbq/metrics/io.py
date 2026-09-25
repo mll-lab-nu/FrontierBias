@@ -5,7 +5,7 @@ combine per-file metrics into a single JSON.
 import json
 import os
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Iterable, Optional, Tuple, Union
 
 from multibbq.metrics.scorer import eval_visual_language, eval_visual_only
 
@@ -55,6 +55,8 @@ def eval_file(
     mode: Optional[str] = None,
     ambig: Optional[bool] = None,
     neg: Optional[bool] = None,
+    parser: str = "strict",
+    include_categories: Optional[Iterable[str]] = None,
 ) -> dict:
     """Score a single results JSON.
 
@@ -63,7 +65,10 @@ def eval_file(
     notebook's `*_w_metrics.json` behavior).
 
     Any of `mode`, `ambig`, `neg` left as None will be inferred from the
-    filename.
+    filename. `parser` selects the answer parser (see `parse_pred`), and
+    `include_categories`, if given, scores only the rows of those categories
+    (the paper's real-image tables use `("race", "gender")`). The settings are
+    recorded under `metrics["scoring"]`.
 
     Returns:
         The metrics dict (same schema as scorer functions).
@@ -79,13 +84,22 @@ def eval_file(
         payload = json.load(f)
 
     rows = payload["data"] if isinstance(payload, dict) and "data" in payload else payload
+    scored_rows = rows
+    if include_categories is not None:
+        keep = set(include_categories)
+        scored_rows = [r for r in rows if r["category"] in keep]
 
     if mode == "visual_only":
-        metrics = eval_visual_only(rows, neg=neg, tail_slice=tail_slice)
+        metrics = eval_visual_only(scored_rows, neg=neg, tail_slice=tail_slice, parser=parser)
     elif mode == "visual_language":
-        metrics = eval_visual_language(rows, ambig=ambig, neg=neg, tail_slice=tail_slice)
+        metrics = eval_visual_language(scored_rows, ambig=ambig, neg=neg, tail_slice=tail_slice, parser=parser)
     else:
         raise ValueError(f"Unknown mode {mode!r}")
+    metrics["scoring"] = {
+        "parser": parser,
+        "tail_slice": tail_slice,
+        "categories": sorted(include_categories) if include_categories is not None else "all",
+    }
 
     if output_path is not None:
         output_path = Path(output_path)
@@ -107,6 +121,8 @@ def eval_directory(
     tail_slice: Optional[int] = None,
     pattern_suffix: str = ".json",
     skip_existing: bool = False,
+    parser: str = "strict",
+    include_categories: Optional[Iterable[str]] = None,
 ) -> Dict[str, dict]:
     """Score every result file under `input_dir` and mirror the tree to `output_dir`.
 
@@ -121,6 +137,8 @@ def eval_directory(
         pattern_suffix: Only files ending with this suffix are considered.
         skip_existing: If True, do not re-score files whose `_w_metrics.json`
             already exists.
+        parser: See `parse_pred`.
+        include_categories: See `eval_file`.
 
     Returns:
         {relative_path: metrics_dict, ...} for every file that was scored.
@@ -129,8 +147,9 @@ def eval_directory(
     output_dir = Path(output_dir)
     scored: Dict[str, dict] = {}
 
-    for dirpath, _, filenames in os.walk(input_dir):
-        for filename in filenames:
+    for dirpath, dirnames, filenames in os.walk(input_dir):
+        dirnames.sort()
+        for filename in sorted(filenames):
             if not filename.endswith(pattern_suffix):
                 continue
             if filename.endswith("_w_metrics.json"):
@@ -145,7 +164,8 @@ def eval_directory(
                 continue
 
             try:
-                metrics = eval_file(in_path, out_path, tail_slice=tail_slice)
+                metrics = eval_file(in_path, out_path, tail_slice=tail_slice, parser=parser,
+                                    include_categories=include_categories)
             except ValueError as e:
                 print(f"[skip] {in_path}: {e}")
                 continue
@@ -167,8 +187,9 @@ def combine_metrics(root_directory: PathLike, output_path: PathLike) -> int:
     output_path = Path(output_path)
     aggregated = []
 
-    for dirpath, _, filenames in os.walk(root_directory):
-        for filename in filenames:
+    for dirpath, dirnames, filenames in os.walk(root_directory):
+        dirnames.sort()
+        for filename in sorted(filenames):
             if not filename.endswith("_w_metrics.json"):
                 continue
             file_path = Path(dirpath) / filename

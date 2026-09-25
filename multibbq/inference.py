@@ -36,8 +36,11 @@ def _fields(example, cfg):
     else:
         disambig = example["disambig_context"]
     if cfg["inject"]:
+        # context_unmasked: the UNMASKED ambiguous context, with " in the image" after each
+        # group name, alongside the masked (positional) options. v1.0 applied this to the
+        # masked context, which names no groups, so the inputs were identical to `main`.
         ambig = utils.add_in_the_image(
-            ambig, example["nonstereotype_group_name"], example["stereotype_group_name"]
+            example["ambig_context"], example["nonstereotype_group_name"], example["stereotype_group_name"]
         )
     return ambig, disambig, options
 
@@ -87,6 +90,7 @@ def _call_model(model, image_path, prompt, system_msg, cfg):
 
 def predict(data, model, cfg, args, system_msg, textual_context, ambiguity, negative):
     results = []
+    missing = []
     for idx, example in enumerate(tqdm(data, total=len(data))):
         q_id, c_id = example["q_id"], example["c_id"]
         category = example["category"]
@@ -95,6 +99,7 @@ def predict(data, model, cfg, args, system_msg, textual_context, ambiguity, nega
         image_path = _resolve_image(example, cfg, args, modality)
         if cfg["image"] != "none" and (image_path == "" or not os.path.isfile(image_path)):
             print(f"Image not found: {image_path}")
+            missing.append(f"{category}_q{q_id}_c{c_id}")
             continue
 
         ambig, disambig, options = _fields(example, cfg)
@@ -130,6 +135,11 @@ def predict(data, model, cfg, args, system_msg, textual_context, ambiguity, nega
             "nonstereotype_group_idx": example["nonstereotype_group_idx"],
             "unk_label_idx": unk_label_idx,
         })
+    if missing:
+        # The released image sets lack 2 visual-only images per generator (content-policy
+        # refusals), so a complete run prints 2 here for visual-only; more means missing downloads.
+        print(f"[warn] {len(missing)} of {len(data)} records skipped because the image is missing: "
+              + ", ".join(missing[:10]) + (" ..." if len(missing) > 10 else ""))
     return results
 
 

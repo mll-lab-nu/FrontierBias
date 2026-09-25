@@ -66,8 +66,11 @@ multibbq pipeline --input results/gpt_image_gen_main --output analysis/gpt_image
 ```
 
 Useful flags: `--score {all,fairness,bias,unk}` (which fields to print), `--tail-slice N`
-(scan only the last `N` chars for the Unknown option, for long reasoning outputs),
-`--skip-existing` (resume a partially-scored directory). Definitions: [metrics.md](../benchmark/metrics.md).
+(scan only the last `N` chars for the Unknown option, for long reasoning outputs; the paper
+uses 18 for the mitigation settings), `--parser {strict,legacy}` (`legacy` reproduces v1.0),
+`--include-categories ...` (score a subset of categories; the paper's real-image tables use
+`race gender`), `--skip-existing` (resume a partially-scored directory). Definitions and the
+per-experiment settings behind the paper: [metrics.md](../benchmark/metrics.md).
 
 ## Batch launchers
 
@@ -83,9 +86,10 @@ bash   scripts/eval_main_cpu.sh    # local, no Slurm
 
 - **Open-source models** run on GPU via HuggingFace Transformers; memory scales with size
   (1B–72B). The paper used H100s with **greedy decoding** (except the `temp` study).
-- **API models (GPT / Gemini)** cost scales with request count: roughly
+- **API models (GPT / Gemini / OpenRouter)** cost scales with request count: roughly
   410 examples × up to 6 context-by-question conditions per model (~2,460 requests).
-  Estimate the bill before launching a full 28-model sweep; start with one small
-  condition to calibrate.
+  Estimate the bill before launching a full sweep; start with one small condition to
+  calibrate. Models whose reasoning cannot be turned off (Claude, Gemini 3.8, Grok, Muse)
+  bill hidden reasoning tokens even in answer-only mode.
 - **Resume:** `--skip-existing` (score) and the per-condition output files make runs
   restartable, so re-running skips completed files.

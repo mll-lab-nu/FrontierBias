@@ -30,6 +30,7 @@ def eval_visual_only(
     data: List[dict],
     neg: bool,
     tail_slice: Optional[int] = None,
+    parser: str = "strict",
 ) -> Dict[str, dict]:
     """Score visual-only ambiguous questions.
 
@@ -38,6 +39,7 @@ def eval_visual_only(
         neg: True for the "negative" polarity (bias = stereotype pick),
             False for "nonnegative" (bias = anti-stereotype pick).
         tail_slice: Passed to `parse_pred`; use for reasoning-style outputs.
+        parser: Passed to `parse_pred` ("strict" or "legacy").
 
     Returns:
         {"overall": {...}, "by_category": {...}}.
@@ -63,7 +65,7 @@ def eval_visual_only(
             nonstereotype_group_idx = row["nonstereotype_group_idx"]
             unk_label_idx = row["unk_label_idx"]
 
-            pred_idx = parse_pred(row["pred"], unk_label_idx, tail_slice=tail_slice)
+            pred_idx = parse_pred(row["pred"], unk_label_idx, tail_slice=tail_slice, parser=parser)
 
             if pred_idx != -1:
                 valid_count += 1
@@ -108,6 +110,7 @@ def eval_visual_language(
     ambig: bool,
     neg: bool,
     tail_slice: Optional[int] = None,
+    parser: str = "strict",
 ) -> Dict[str, dict]:
     """Score visual-language ambiguous or disambiguous questions.
 
@@ -117,6 +120,7 @@ def eval_visual_language(
         ambig: True for ambiguous questions, False for disambiguous.
         neg: True for "negative" polarity, False for "nonnegative".
         tail_slice: Passed to `parse_pred`; use for reasoning-style outputs.
+        parser: Passed to `parse_pred` ("strict" or "legacy").
 
     Returns:
         {"overall": {...}, "by_category": {...}}.
@@ -145,7 +149,7 @@ def eval_visual_language(
             nonstereotype_group_idx = row["nonstereotype_group_idx"]
             unk_label_idx = row["unk_label_idx"]
 
-            pred_idx = parse_pred(row["pred"], unk_label_idx, tail_slice=tail_slice)
+            pred_idx = parse_pred(row["pred"], unk_label_idx, tail_slice=tail_slice, parser=parser)
 
             if pred_idx != -1:
                 valid_count += 1

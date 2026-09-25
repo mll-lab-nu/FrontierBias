@@ -7,7 +7,7 @@ pandas, no GPU stack. Exposed both as a Python API and via the `multibbq`
 
 | File | Role |
 |---|---|
-| `parsers.py` | `parse_pred`: map a model's raw text answer to an option index, with unknown-synonym matching (`--tail-slice` for long reasoning outputs). |
+| `parsers.py` | `parse_pred`: map a model's raw text answer to an option index: whole-word unknown-synonym matching (`--tail-slice` for long reasoning outputs), then the last standalone A/B/C; `parser="legacy"` reproduces v1.0. |
 | `scorer.py` | `eval_visual_only` / `eval_visual_language`: per-category and overall Fairness / Bias / Unknown-rate for one result set. |
 | `io.py` | `eval_file` / `eval_directory` / `combine_metrics`: score files (filename → flags), mirror a results tree, and merge into `combined_metrics.json`. |
 | `aggregate.py` | `combined_metrics.json` → per-category CSV summaries and `FS_total` / `BS_total` via a 3-term harmonic mean; the `pipeline` back-end. |
@@ -18,7 +18,7 @@ Python API:
 from multibbq.metrics import eval_file
 
 metrics = eval_file("model_visual_language_negative_ambiguous.json")
-# {"overall": {"fairness_score", "bias_score", "unk_rate"}, "by_category": {...}}
+# {"overall": {"fairness_score", "bias_score", "unk_rate"}, "by_category": {...}, "scoring": {...}}
 ```
 
 Filename convention used for auto-inference:

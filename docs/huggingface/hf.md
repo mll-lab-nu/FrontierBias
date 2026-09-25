@@ -99,6 +99,7 @@ hf upload MLL-Lab/MultiBBQ-results results/  results/  --repo-type dataset
 hf upload MLL-Lab/MultiBBQ-results analysis/ analysis/ --repo-type dataset
 ```
 
-Everything in `analysis/` is regenerable from `results/` with `multibbq pipeline`, so the
-outputs repo is a convenience and an audit trail. See [RESULTS.md](../benchmark/RESULTS.md) and the repo
+Everything in `analysis/` is regenerable from `results/` with
+[`scripts/score_released_results.sh`](../../scripts/score_released_results.sh) (`multibbq pipeline`
+with the paper's per-experiment settings), so the outputs repo is a convenience and an audit trail. See [RESULTS.md](../benchmark/RESULTS.md) and the repo
 card [`hf_results_card.md`](hf_results_card.md).

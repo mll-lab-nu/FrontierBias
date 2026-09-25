@@ -31,7 +31,7 @@ size_categories:
   <a href="https://multibbq.github.io"><img src="https://img.shields.io/badge/📄_Paper-DC143C?style=for-the-badge&logoColor=white" alt="Paper"></a>
   <a href="https://huggingface.co/datasets/MLL-Lab/MultiBBQ"><img src="https://img.shields.io/badge/🤗_Dataset-FFD21E?style=for-the-badge&logoColor=black" alt="HuggingFace dataset"></a>
   <a href="https://huggingface.co/datasets/MLL-Lab/MultiBBQ-results"><img src="https://img.shields.io/badge/📊_Results-FFD21E?style=for-the-badge&logoColor=black" alt="HuggingFace results"></a>
-  <a href="https://github.com/mll-lab-nu/MultiBBQ/blob/main/LICENSE"><img src="https://img.shields.io/badge/⚖️_Code-MIT-4285F4?style=for-the-badge&logoColor=white" alt="License: MIT"></a>
+  <a href="https://github.com/mll-lab-nu/MultiBBQ"><img src="https://img.shields.io/badge/⚖️_Code-MIT-4285F4?style=for-the-badge&logoColor=white" alt="License: MIT"></a>
 </p>
 
 <p align="center">
@@ -75,6 +75,17 @@ MLL-Lab/MultiBBQ-perturbations
     ├── visual_language/
     └── visual_only/
 ```
+
+Parameters of the eight sets the paper reports (brightness and contrast shifts are drawn per
+image; the contrast and noise rows are measured on the released images):
+
+| Set | Transform |
+|---|---|
+| `brightness_up` / `brightness_down` | additive shift of Δb·255, Δb ~ U(+0.10, +0.25) / U(−0.25, −0.10) |
+| `contrast_up` / `contrast_down` | pixel values × (1 + Δc), Δc ~ U(+0.10, +0.30) / U(−0.30, −0.10); scaling is about zero, so brightness shifts too |
+| `compression` | JPEG, quality ~ U(40, 60) |
+| `noise` | zero-mean Gaussian noise, standard deviation ≈ 53–83 in [0, 255] units (clearly visible) |
+| `resize_l` / `resize_s` | bilinear resize to 2048×2048 / 512×512 |
 
 Each set holds the same images as the core GPT-Image-1 collection (818 PNGs per set: 410
 visual-language + 408 visual-only), so paths line up one-to-one with the core `image_path`

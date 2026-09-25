@@ -50,11 +50,13 @@ Set only the keys for the model families you actually run:
 |---|---|---|
 | OpenAI | GPT-4o, GPT-5 / mini / nano | `OPENAI_API_KEY` |
 | Google (Vertex AI) | Gemini 2.5 flash / flash-lite | `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION` (default `global`); auth via `gcloud auth application-default login` |
+| OpenRouter | GPT-6 sol / luna, Claude Opus 5.5, Gemini 3.8 Flash, Grok 4.7, Muse Spark 1.3 (v1.1) | `OPENROUTER_API_KEY` |
 | HuggingFace | gated open weights (if any) | `HF_TOKEN` (or `hf auth login`) |
 
 ```bash
 export OPENAI_API_KEY=sk-...
 export GOOGLE_CLOUD_PROJECT=my-vertex-project
+export OPENROUTER_API_KEY=sk-or-...
 ```
 
 The full model list and download links are in [models.md](../benchmark/models.md).
@@ -117,7 +119,8 @@ Good to know:
   interrupted downloads; if unsure, just run it again.
 - **408 vs 410**: 4 metadata records (2 per generator, visual-only) reference images
   the generators refused to produce, so visual-only runs cover 408 of the 410 items;
-  the harness prints `Image not found` for those records and skips them.
+  the harness prints `Image not found` for those records, skips them, and reports the
+  count at the end of the run.
 - **`--root <dir>`** writes the `data/images/` tree under another directory.
 - **Cache**: the main-set parquet shards land in `~/.cache/huggingface/` (~2.7 GB,
   relocate with `HF_HOME`); they can be deleted after extraction, since

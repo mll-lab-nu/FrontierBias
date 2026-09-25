@@ -30,7 +30,7 @@ size_categories:
   <a href="https://multibbq.github.io"><img src="https://img.shields.io/badge/📄_Paper-DC143C?style=for-the-badge&logoColor=white" alt="Paper"></a>
   <a href="https://huggingface.co/datasets/MLL-Lab/MultiBBQ"><img src="https://img.shields.io/badge/🤗_Dataset-FFD21E?style=for-the-badge&logoColor=black" alt="HuggingFace dataset"></a>
   <a href="https://huggingface.co/datasets/MLL-Lab/MultiBBQ-results"><img src="https://img.shields.io/badge/📊_Results-FFD21E?style=for-the-badge&logoColor=black" alt="HuggingFace results"></a>
-  <a href="https://github.com/mll-lab-nu/MultiBBQ/blob/main/LICENSE"><img src="https://img.shields.io/badge/⚖️_Code-MIT-4285F4?style=for-the-badge&logoColor=white" alt="License: MIT"></a>
+  <a href="https://github.com/mll-lab-nu/MultiBBQ"><img src="https://img.shields.io/badge/⚖️_Code-MIT-4285F4?style=for-the-badge&logoColor=white" alt="License: MIT"></a>
 </p>
 
 <p align="center">
@@ -44,7 +44,7 @@ mirroring the two-person layout of the synthetic
 [MLL-Lab/MultiBBQ](https://huggingface.co/datasets/MLL-Lab/MultiBBQ) images. Evaluating on
 this set checks that conclusions drawn from the synthetic benchmark carry over to real
 photos: in the paper, fairness scores on synthetic and real images are highly consistent
-(Pearson *r* = 0.9787).
+(Pearson *r* = 0.978).
 
 - **Paper:** *Fairness Failure Modes of Multimodal LLMs*
 - **Code:** https://github.com/mll-lab-nu/MultiBBQ
@@ -85,7 +85,17 @@ multibbq run "OpenGVLab/InternVL3_5-8B" --experiment realworld
 
 The corresponding model outputs and computed metrics are in
 [MLL-Lab/MultiBBQ-results](https://huggingface.co/datasets/MLL-Lab/MultiBBQ-results)
-(directories named `gpt_image_gen_realworld`).
+(`gpt_image_gen_realworld`, and `gpt_image_gen_main4realworld` for the same items on the
+synthetic images).
+
+The paper's real-image tables score the **58 race and gender images**; the 20 age images
+are released but not scored, because the face set covers adults only (18 to 60) while most
+of the age items involve a child or teenager. To reproduce:
+
+```bash
+multibbq pipeline --input results/gpt_image_gen_realworld --output analysis/gpt_image_gen_realworld \
+    --include-categories race gender --categories race gender
+```
 
 ## Citation
 

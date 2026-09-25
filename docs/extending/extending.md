@@ -42,7 +42,7 @@ Add one row. Every axis key:
 | `retry` | `bool` | Wrap `model.run` in the 3-attempt retry loop (needed for long reasoning outputs that intermittently return `None`). |
 | `token` | str | Results subdirectory: `results/<data_id>_<token>/`. Overridden at runtime for some experiments: `image="aug"` uses `--img_aug_type`, `temp` uses `temp_<temperature>`, and `reasoning` uses `--reasoning_mode`. |
 | `text_only` | `bool` (optional) | Route through the factory's `text_only=True` path (`HFTextModel`, no vision wrapper). Used by `llm`. |
-| `strip_image_ref` | `bool` (optional) | Strip `" in the image"` from the question (for text-only eval where there is no image). Used by `llm`. |
+| `strip_image_ref` | `bool` (optional) | Strip `" in the image"` from the question (for settings where no one is in the image). Used by `llm` and `unmasked_wo_img`. |
 
 Example (a new "grayscale image" study reusing the baseline text setup):
 
@@ -82,8 +82,8 @@ Confirm results land under `results/gpt_image_gen_gray/…` and that scoring suc
 ### Where
 
 Scoring lives in [../../multibbq/metrics/scorer.py](../../multibbq/metrics/scorer.py).
-Both entry points (`eval_visual_only(data, neg, tail_slice=None)` and
-`eval_visual_language(data, ambig, neg, tail_slice=None)`) return the same schema:
+Both entry points (`eval_visual_only(data, neg, tail_slice=None, parser="strict")` and
+`eval_visual_language(data, ambig, neg, tail_slice=None, parser="strict")`) return the same schema:
 
 ```python
 {

@@ -10,7 +10,7 @@ the HuggingFace Hub and are reproducible from the code here. The full layout is 
 | Real-world images (`data/images/real_world_image/`) | ~130 MB | HF dataset `MLL-Lab/MultiBBQ-realworld` | `notebooks/gen_realworld.ipynb` |
 | Perturbed image sets (`data/images/gpt_image_gen_<type>/`) | ~16 GB | HF dataset `MLL-Lab/MultiBBQ-perturbations` | perturbation transforms of the main set |
 | Raw inference outputs (`results/`) | ~330 MB | HF dataset `MLL-Lab/MultiBBQ-results` | `multibbq run ...` (see main README) |
-| Computed metrics (`analysis/`) | ~110 MB | HF dataset `MLL-Lab/MultiBBQ-results` | `multibbq pipeline --input results/ --output analysis/` |
+| Computed metrics (`analysis/`) | ~4 MB | HF dataset `MLL-Lab/MultiBBQ-results` | `bash scripts/score_released_results.sh results analysis` |
 
 ## Getting the images
 
@@ -32,6 +32,13 @@ pip install -e .
 multibbq pipeline --input results/gpt_image_gen_main --output analysis/gpt_image_gen_main
 ```
 
+To rebuild all of `analysis/` exactly as released (per-experiment settings included):
+
+```bash
+hf download MLL-Lab/MultiBBQ-results --repo-type dataset --include "results/**" --local-dir .
+bash scripts/score_released_results.sh results analysis
+```
+
 The released `results/` cover the experiments reported in the paper; the toolkit's
 extension settings (`img_label`, `context_unmasked`, `llm`) and the perturbation
 baselines (`brightness`, `contrast`) have no released outputs.
@@ -51,4 +58,4 @@ Only the dataset metadata (`data/metadata/`), the construction materials
 | `reasoning` | Bias mitigation | `eval_models_reasoning.py` |
 | `realworld` | Generalization to real images | `eval_models_realworld.py` |
 | `context_unmasked` | (control, not reported in the paper) | `eval_models_context_unmasked.py` |
-| `unmasked_w_img` / `unmasked_wo_img` | Backbone-LLM comparison | `eval_models_unmasked_{w,wo}_img.py` |
+| `unmasked_w_img` / `unmasked_wo_img` | Backbone-LLM comparison (Figure 3 plots `unmasked_wo_img` against `main`) | `eval_models_unmasked_{w,wo}_img.py` |

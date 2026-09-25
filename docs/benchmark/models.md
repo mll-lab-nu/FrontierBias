@@ -1,6 +1,7 @@
 # Supported models
 
-**28 models across 11 families.** Pass any of these ids as `multibbq run <model_id>`.
+**34 models across 15 families** (28 in v1.0, plus six frontier API models in v1.1). Pass any
+of these ids as `multibbq run <model_id>`.
 Open-source checkpoints auto-download from HuggingFace; API models read credentials from
 the environment (see [installation.md](../getting-started/installation.md)).
 
@@ -11,6 +12,26 @@ the environment (see [installation.md](../getting-started/installation.md)).
 | GPT-4o | (none) | `gpt-4o` | `OPENAI_API_KEY` |
 | GPT-5 | base / mini / nano | `gpt-5`, `gpt-5-mini`, `gpt-5-nano` | `OPENAI_API_KEY` |
 | Gemini 2.5 | flash / flash-lite | `gemini-2.5-flash`, `gemini-2.5-flash-lite` | `GOOGLE_CLOUD_PROJECT` |
+
+## Frontier API models via OpenRouter (added in v1.1)
+
+| Family | id | Credentials |
+|---|---|---|
+| GPT-6 | `openai/gpt-6-sol`, `openai/gpt-6-luna` | `OPENROUTER_API_KEY` |
+| Claude | `anthropic/claude-opus-5.5` | `OPENROUTER_API_KEY` |
+| Gemini 3.8 | `google/gemini-3.8-flash` | `OPENROUTER_API_KEY` |
+| Grok | `x-ai/grok-4.7` | `OPENROUTER_API_KEY` |
+| Muse | `meta/muse-spark-1.3` | `OPENROUTER_API_KEY` |
+
+These run through OpenRouter's OpenAI-compatible API
+([`../../multibbq/models/openrouter.py`](../../multibbq/models/openrouter.py)), with the
+paper's API-model protocol: the lowest reasoning effort the model allows in answer-only mode
+(`none` for GPT-6; `minimal` for the others, whose reasoning cannot be turned off, with a
+512-token cap, 1024 for Grok and Muse, so the answer is not cut off), and effort `medium`
+with 3000 tokens in the reasoning settings. Temperature is 0 where the provider accepts it
+(Gemini, Grok, Muse), unsupported for GPT-6, and the provider default for Claude. Claude's API
+returns a content filter for the two reasoning system prompts, so Claude has no reasoning
+results; its Fairness Instruction run was not completed.
 
 ## Open-source (HuggingFace)
 
@@ -36,10 +57,12 @@ the environment (see [installation.md](../getting-started/installation.md)).
 - Qwen2.5-VL: <https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct> (3B–72B)
 - BLIP-2: <https://huggingface.co/Salesforce/blip2-opt-2.7b>, <https://huggingface.co/Salesforce/blip2-opt-6.7b>
 - GPT / Gemini: <https://platform.openai.com/docs/models>, <https://ai.google.dev/gemini-api/docs/models>
+- OpenRouter models: <https://openrouter.ai/models>
 
 ## How dispatch works
 
-`ModelFactory` parses the id into a family + size and instantiates that family's wrapper
+`ModelFactory` first matches the OpenRouter ids above exactly; otherwise it parses the id into
+a family + size and instantiates that family's wrapper
 with the requested `mode` / `quant` / `temperature`. Coverage: every family has
 `default` + `reasoning`; local families add `temp`; `quant` exists for blip2 / internvl /
 llava (BNB 4/8-bit) and qwen (AWQ checkpoints, e.g. `Qwen/Qwen2.5-VL-7B-Instruct-AWQ`). To add a model, see [`../../multibbq/models/README.md`](../../multibbq/models/README.md).
